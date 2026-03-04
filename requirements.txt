@@ -15,4 +15,3 @@ typer
 fastapi
 uvicorn
 gunicorn
--e .

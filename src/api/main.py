@@ -23,6 +23,13 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
 STATIC_DIR = Path(__file__).resolve().parents[1] / "webapp" / "dist"
 
+@app.get("/")
+def read_index():
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    return {"message": "Spare Parts Forecast API Running (Dashboard build not found)"}
+
 @app.get("/api/items")
 def get_items():
     try:

@@ -30,5 +30,5 @@ COPY --from=frontend-builder /app/src/webapp/dist ./src/webapp/dist
 ENV PORT=8000
 EXPOSE 8000
 
-# Start the application
-CMD ["python", "src/api/main.py"]
+# Start the application using Gunicorn for production robustness
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "src.api.main:app", "--bind", "0.0.0.0:8000"]

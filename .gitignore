@@ -1,5 +1,7 @@
 # Data
-/data/
+/data/*
+!/data/processed/
+/models/
 
 # Mac OS-specific storage files
 .DS_Store
@@ -190,8 +192,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# Web App (as requested to be excluded)
-src/webapp/
+# Web App
+/src/webapp/node_modules/
+/src/webapp/dist/
 
 # Project Specific
 myenv/

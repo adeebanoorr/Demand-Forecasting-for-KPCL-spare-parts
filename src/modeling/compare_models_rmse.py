@@ -1,4 +1,5 @@
 import warnings
+import pickle
 warnings.filterwarnings("ignore")
 
 import sys
@@ -27,6 +28,27 @@ RESULTS_DIR = PROJECT_ROOT / "data" / "processed" / "baseline_comparison"
 
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# PERSISTENCE PATHS FOR VARIANTS
+VAR_VALIDATION_DIR = PROJECT_ROOT / "data" / "processed" / "all_validation" / "variants"
+VAR_MODEL_DIR = PROJECT_ROOT / "models" / "all_forecast" / "variants"
+
+for d in [VAR_VALIDATION_DIR, VAR_MODEL_DIR]:
+    d.mkdir(parents=True, exist_ok=True)
+
+def save_variant(item_code, model_name, model_obj, test_index, test_actual, forecast_vals):
+    """Helper to save model and its validation data."""
+    # Save Model
+    with open(VAR_MODEL_DIR / f"{item_code}_{model_name}_model.pkl", "wb") as f:
+        pickle.dump(model_obj, f)
+    
+    # Save Validation vs Actual
+    val_df = pd.DataFrame({
+        "Date": test_index,
+        "Actual_Qty": test_actual,
+        "Predicted_Qty": forecast_vals
+    })
+    val_df.to_csv(VAR_VALIDATION_DIR / f"{item_code}_validation_{model_name}.csv", index=False)
 
 # -------------------------------------------------
 # 2. Helper: RMSE
@@ -77,7 +99,9 @@ for item_code in item_codes:
     # --- AR(1) ---
     try:
         ar_model = ARIMA(train, order=(1, 0, 0)).fit()
-        results["AR"] = rmse(test, ar_model.forecast(FORECAST_WEEKS))
+        ar_f = ar_model.forecast(FORECAST_WEEKS)
+        results["AR"] = rmse(test, ar_f)
+        save_variant(item_code, "AR", ar_model, test.index, test.values, ar_f)
     except Exception as e:
         print(f"AR error for {item_code}: {e}")
         results["AR"] = np.nan
@@ -85,7 +109,9 @@ for item_code in item_codes:
     # --- MA(1) ---
     try:
         ma_model = ARIMA(train, order=(0, 0, 1)).fit()
-        results["MA"] = rmse(test, ma_model.forecast(FORECAST_WEEKS))
+        ma_f = ma_model.forecast(FORECAST_WEEKS)
+        results["MA"] = rmse(test, ma_f)
+        save_variant(item_code, "MA", ma_model, test.index, test.values, ma_f)
     except Exception as e:
         print(f"MA error for {item_code}: {e}")
         results["MA"] = np.nan
@@ -93,7 +119,9 @@ for item_code in item_codes:
     # --- ARMA(1,1) ---
     try:
         arma_model = ARIMA(train, order=(1, 0, 1)).fit()
-        results["ARMA"] = rmse(test, arma_model.forecast(FORECAST_WEEKS))
+        arma_f = arma_model.forecast(FORECAST_WEEKS)
+        results["ARMA"] = rmse(test, arma_f)
+        save_variant(item_code, "ARMA", arma_model, test.index, test.values, arma_f)
     except Exception as e:
         print(f"ARMA error for {item_code}: {e}")
         results["ARMA"] = np.nan
@@ -101,7 +129,9 @@ for item_code in item_codes:
     # --- ARIMA(1,1,1) ---
     try:
         arima_model = ARIMA(train, order=(1, 1, 1)).fit()
-        results["ARIMA"] = rmse(test, arima_model.forecast(FORECAST_WEEKS))
+        arima_f = arima_model.forecast(FORECAST_WEEKS)
+        results["ARIMA"] = rmse(test, arima_f)
+        save_variant(item_code, "ARIMA", arima_model, test.index, test.values, arima_f)
     except Exception as e:
         print(f"ARIMA error for {item_code}: {e}")
         results["ARIMA"] = np.nan
@@ -115,7 +145,9 @@ for item_code in item_codes:
             enforce_stationarity=False,
             enforce_invertibility=False
         ).fit(disp=False)
-        results["SARIMA"] = rmse(test, sarima_model.forecast(FORECAST_WEEKS))
+        sarima_f = sarima_model.forecast(FORECAST_WEEKS)
+        results["SARIMA"] = rmse(test, sarima_f)
+        save_variant(item_code, "SARIMA", sarima_model, test.index, test.values, sarima_f)
     except Exception as e:
         print(f"SARIMA error for {item_code}: {e}")
         results["SARIMA"] = np.nan
@@ -139,8 +171,8 @@ for item_code in item_codes:
         future = m.make_future_dataframe(periods=FORECAST_WEEKS, freq='W-SUN')
         forecast_all = m.predict(future)
         prophet_forecast = forecast_all.iloc[-FORECAST_WEEKS:]["yhat"].values
-        
         results["Prophet"] = rmse(test, prophet_forecast)
+        save_variant(item_code, "Prophet", m, test.index, test.values, prophet_forecast)
     except Exception as e:
         print(f"Prophet error for {item_code}: {e}")
         results["Prophet"] = np.nan

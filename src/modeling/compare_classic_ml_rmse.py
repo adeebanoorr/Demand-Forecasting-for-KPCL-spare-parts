@@ -4,6 +4,7 @@ import warnings
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 from pathlib import Path
 
 # ML Models
@@ -30,8 +31,12 @@ TEST_PATH = DATA_PREP_DIR / "test_dataset.csv"
 RESULTS_DIR = PROJECT_ROOT / "data" / "processed" / "classic_ml_comparison"
 FIG_DIR = PROJECT_ROOT / "reports" / "figures" / "classic_ml_comparison"
 
+# PERSISTENCE PATHS FOR VARIANTS
+VAR_VALIDATION_DIR = PROJECT_ROOT / "data" / "processed" / "classic_ml_validation" / "variants"
+VAR_MODEL_DIR = PROJECT_ROOT / "models" / "classic_ml" / "variants"
+
 # Create directories
-for d in [RESULTS_DIR, FIG_DIR]:
+for d in [RESULTS_DIR, FIG_DIR, VAR_VALIDATION_DIR, VAR_MODEL_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Constants
@@ -128,6 +133,19 @@ def main():
             rmse = np.sqrt(mean_squared_error(ts_test_val['QTY'], forecasts))
             item_scores[name] = rmse
             print(f"   {name}: RMSE = {rmse:.2f}")
+
+            # 5. PERSIST VARIANT DATA (NEW)
+            # Save Model
+            with open(VAR_MODEL_DIR / f"{item}_{name}_model.pkl", "wb") as f:
+                pickle.dump(model, f)
+            
+            # Save Validation vs Actual
+            val_df = pd.DataFrame({
+                "Date": ts_test_val['OA_DATE'].values,
+                "Actual_Qty": ts_test_val['QTY'].values,
+                "Predicted_Qty": forecasts
+            })
+            val_df.to_csv(VAR_VALIDATION_DIR / f"{item}_validation_{name}.csv", index=False)
             
         results.append(item_scores)
 

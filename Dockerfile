@@ -30,5 +30,5 @@ COPY --from=frontend-builder /app/src/webapp/dist ./src/webapp/dist
 ENV PORT=8000
 EXPOSE 8000
 
-# Start the application using Uvicorn directly
-CMD uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+# Start the application using the entrypoint script that handles the PORT variable
+CMD ["python", "src/api/main.py"]

@@ -473,7 +473,7 @@ export default function App() {
                 </select>
                 <div className="h-8 w-px bg-slate-100 mx-2" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-teal">Comparative (ML vs TS vs Auto-SARIMA vs Champion)</span>
+                  <span className="text-sm font-bold text-teal">Comparative (ML vs TS vs Champion)</span>
                 </div>
                 <button
                   onClick={() => handleGenerateForecast()}

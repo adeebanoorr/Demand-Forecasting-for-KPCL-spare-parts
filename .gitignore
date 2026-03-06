@@ -194,7 +194,7 @@ cython_debug/
 
 # Web App
 /src/webapp/node_modules/
-# /src/webapp/dist/
+!/src/webapp/dist/
 
 # Project Specific
 myenv/

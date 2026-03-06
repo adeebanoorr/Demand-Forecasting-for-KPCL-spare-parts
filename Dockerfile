@@ -30,5 +30,5 @@ COPY --from=frontend-builder /app/src/webapp/dist ./src/webapp/dist
 ENV PORT=8000
 EXPOSE 8000
 
-# Start the application using Gunicorn and the dynamic PORT provided by Railway
-CMD gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.api.main:app --bind 0.0.0.0:$PORT
+# Start the application using Uvicorn directly
+CMD uvicorn src.api.main:app --host 0.0.0.0 --port $PORT

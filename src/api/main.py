@@ -19,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "message": "API is reachable"}
+
 # Directories
 BASE_DIR = Path(__file__).resolve().parents[2] / "data" / "processed"
 STATIC_DIR = Path(__file__).resolve().parents[1] / "webapp" / "dist"
